@@ -40,7 +40,6 @@ public class DFSSolution {
                     List<Integer> adjacency = adjacencyMap.get(to);
                     adjacency.add(from);
                 }
-
             }
 
             tokenizer = new StringTokenizer(reader.readLine());

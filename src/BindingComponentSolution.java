@@ -1,117 +1,112 @@
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class BindingComponentSolution {
 
     static public int[] color;
-    static public int componentCount = 1;
+
 
     public static void main(String[] args) throws IOException {
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(System.in))) {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+             BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(System.out));
+        ) {
             StringTokenizer tokenizer = new StringTokenizer(reader.readLine());
             int n = Integer.parseInt(tokenizer.nextToken());
-            HashMap<Integer, List<Integer>> adjacencyMap = new HashMap<>();
             color = new int[n + 1];
-
+            //boolean[][] adjacencyMatrix = new boolean[n + 1][n + 1];
             int m = Integer.parseInt(tokenizer.nextToken());
-
+            HashMap<Integer, List<Integer>> map = new HashMap<>();
             for (int i = 0; i < m; i++) {
                 StringTokenizer tokenizerVertex = new StringTokenizer(reader.readLine());
 
                 int from = Integer.parseInt(tokenizerVertex.nextToken());
                 int to = Integer.parseInt(tokenizerVertex.nextToken());
 
-                if (!adjacencyMap.containsKey(from)) {
-                    List<Integer> adjacency = new LinkedList<>();
-                    adjacency.add(to);
-                    adjacencyMap.put(from, adjacency);
+                if (!map.containsKey(from)) {
+                    List<Integer> ll = new LinkedList<>();
+                    ll.add(to);
+                    map.put(from, ll);
                 } else {
-                    List<Integer> adjacency = adjacencyMap.get(from);
-                    adjacency.add(to);
+                    List<Integer> list = map.get(from);
+                    list.add(to);
                 }
-
-                if (!adjacencyMap.containsKey(to)) {
-                    List<Integer> adjacency = new LinkedList<>();
-                    adjacency.add(from);
-                    adjacencyMap.put(to, adjacency);
+                if (!map.containsKey(to)) {
+                    List<Integer> ll = new LinkedList<>();
+                    ll.add(from);
+                    map.put(to, ll);
                 } else {
-                    List<Integer> adjacency = adjacencyMap.get(to);
-                    adjacency.add(from);
+                    List<Integer> list = map.get(to);
+                    list.add(from);
                 }
 
             }
 
-            Map<Integer, List<Integer>> map =new HashMap<>();
+            int componentCount = 2;
             for (int i = 1; i <color.length ; i++) {
-
                 if (color[i]==0){
-                    dfs(i, adjacencyMap, map);
+                    dfs(i, map, color, componentCount);
                     componentCount++;
                 }
-
             }
 
+            map = new HashMap<>();
 
-//            for (int i = 1; i <= color.length -1 ; i++) {
-//                if (!map.containsKey(color[i])) {
-//                    List<Integer> list = new LinkedList<>();
-//                    list.add(i);
-//                    map.put(color[i], list);
-//                } else {
-//                    List<Integer> adjacency = map.get(color[i]);
-//                    adjacency.add(i);
-//                }
-//            }
-            System.out.println(map.keySet().size());
-            StringBuffer buffer = new StringBuffer();
-            for (Integer key: map.keySet()
-                 ) {
-                for (Integer values:map.get(key)
-                     ) {
-                    buffer.append(values);
-                    buffer.append(" ");
+            for (int i = 1; i < color.length; i++) {
+                if (map.containsKey(color[i])){
+                    List<Integer> list = map.get(color[i]);
+                    list.add(i);
+                }else {
+                    List<Integer> list = new ArrayList<>();
+                    list.add(i);
+                    map.put(color[i], list);
                 }
-                System.out.println(buffer.toString());
-                buffer = new StringBuffer();
             }
+            System.out.println(map.keySet().size());
+            for (Integer i :map.keySet()) {
+                List<Integer> list = map.get(i);
+                for (Integer j :list ) {
+                    writer.write(j.toString());
+                    writer.write(" ");
+
+                }
+                writer.newLine();
+
+            }
+            writer.flush();
         }
     }
 
-    public static void dfs(int startVertex, Map<Integer, List<Integer>> adjList, Map<Integer, List<Integer>> map ) {
+    public static void dfs(int startVertex, Map<Integer, List<Integer>> adjMatrx, int[] color, int componentCount) {
         Stack<Integer> stack = new Stack<>();
         stack.push(startVertex);
 
         while (!stack.empty()) {
-            Integer vertex = stack.pop();
-            if (color[vertex] == 0) {
-                color[vertex] = componentCount;
-                if (!map.containsKey(componentCount)) {
-                    List<Integer> list = new LinkedList<>();
-                    list.add(vertex);
-                    map.put(componentCount, list);
-                } else {
-                    List<Integer> adjacency = map.get(componentCount);
-                    adjacency.add(vertex);
-                }
-                stack.push(vertex);
-                List<Integer> children = null;
-
-                if (adjList.containsKey(vertex)) {
-                    children = adjList.get(vertex);
-                } else {
-                    children = new ArrayList<>();
-                }
-
-                for (Integer child : children.stream().sorted(Comparator.reverseOrder()).collect(Collectors.toList())) {
-                    if (child != 0 && color[child] == 0) {
-                        stack.push(child);
+            Integer to = stack.pop();
+            if (color[to] == 0) {
+                color[to] = 1;
+                stack.push(to);
+                if (adjMatrx.containsKey(to)){
+                    List<Integer> froms = adjMatrx.get(to);
+                    for (Integer i :froms
+                         ) {
+                        if (color[i] == 0) {
+                            stack.push(i);
+                        }
                     }
                 }
-            }
 
+//                for (int i = 0; i < froms.length; i++) {
+//                    if (froms[i]) {
+//                        if (color[i] == 0) {
+//                            stack.push(i);
+//                        }
+//                    }
+//                }
+
+            } else if (color[to] == 1) {
+                color[to] = componentCount;
+            }
         }
     }
 }
